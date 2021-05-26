@@ -14,5 +14,12 @@
   "license": "ISC",
   "devDependencies": {
     "lite-server": "^2.3.0"
+  },
+  "dependencies": {
+    "abi-decoder": "^2.4.0",
+    "fs": "^0.0.1-security",
+    "fs-extra": "^3.0.1",
+    "react": "^17.0.2",
+    "solc": "^0.8.2"
   }
 }
