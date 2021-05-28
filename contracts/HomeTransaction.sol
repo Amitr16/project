@@ -2,21 +2,22 @@ pragma solidity >=0.4.25 <0.6.0;
 
 contract HomeTransaction {
     // Constants
-    uint constant timeBetweenDepositAndFinalization = 5 minutes;
-    uint constant depositPercentage = 10;
+    uint constant timeBetweenDepositAndFinalization = 14 days;
+    uint constant depositPercentage = 1;
 
     enum ContractState {
+        WaitingBuyerInterest,
         WaitingSellerSignature,
         WaitingBuyerSignature,
-        WaitingRealtorReview,
+        WaitingAgentReview,
         WaitingFinalization,
         Finalized,
         Rejected }
-    ContractState public contractState = ContractState.WaitingSellerSignature;
+    ContractState public contractState = ContractState.WaitingBuyerInterest;
 
     
     // Roles acting on contract
-    address payable public realtor;
+    address payable public Agent;
     address payable public seller;
     address payable public buyer;
 
@@ -24,14 +25,14 @@ contract HomeTransaction {
     string public homeAddress;
     string public zip;
     string public city;
-    uint public realtorFee;
+    uint public AgentFee;
     uint public price;
 
     // Set when buyer signs and pays deposit
     uint public deposit;
     uint public finalizeDeadline;
 
-    // Set when realtor reviews closing conditions
+    // Set when Agent reviews closing conditions
     enum ClosingConditionsReview { Pending, Accepted, Rejected }
     ClosingConditionsReview closingConditionsReview = ClosingConditionsReview.Pending;
 
@@ -39,29 +40,38 @@ contract HomeTransaction {
         string memory _address,
         string memory _zip,
         string memory _city,
-        uint _realtorFee,
+        uint _AgentFee,
         uint _price,
-        address payable _realtor,
+        address payable _Agent,
         address payable _seller,
         address payable _buyer) public {
-        require(_price >= _realtorFee, "Price needs to be more than realtor fee!");
+        require(_price >= _AgentFee, "Price needs to be more than Agent fee!");
 
-        realtor = _realtor;
+        Agent = _Agent;
         seller = _seller;
         buyer = _buyer;
         homeAddress = _address;
         zip = _zip;
         city = _city;
         price = _price;
-        realtorFee = _realtorFee;
+        AgentFee = _AgentFee;
     }
 
+       function buyerShowsInterest() public payable {
+        
+
+        require(contractState == ContractState.WaitingBuyerInterest, "Wrong contract state");
+
+        contractState = ContractState.WaitingSellerSignature;
+        buyer=msg.sender; //setting seller address
+    }
     function sellerSignContract() public payable {
         require(seller == msg.sender, "Only seller can sign contract");
 
         require(contractState == ContractState.WaitingSellerSignature, "Wrong contract state");
 
         contractState = ContractState.WaitingBuyerSignature;
+        buyer=msg.sender; //setting seller address
     }
 
     function buyerSignContractAndPayDeposit() public payable {
@@ -71,23 +81,23 @@ contract HomeTransaction {
     
         require(msg.value >= price*depositPercentage/100 && msg.value <= price, "Buyer needs to deposit between 10% and 100% to sign contract");
 
-        contractState = ContractState.WaitingRealtorReview;
+        contractState = ContractState.WaitingAgentReview;
 
         deposit = msg.value;
         finalizeDeadline = now + timeBetweenDepositAndFinalization;
     }
 
-    function realtorReviewedClosingConditions(bool accepted) public {
-        require(realtor == msg.sender, "Only realtor can review closing conditions");
+    function AgentReviewedClosingConditions(bool accepted) public {
+        require(Agent == msg.sender, "Only Agent can review closing conditions");
 
-        require(contractState == ContractState.WaitingRealtorReview, "Wrong contract state");
+        require(contractState == ContractState.WaitingAgentReview, "Wrong contract state");
         
         if (accepted) {
             closingConditionsReview = ClosingConditionsReview.Accepted;
             contractState = ContractState.WaitingFinalization;
         } else {
-            closingConditionsReview = ClosingConditionsReview.Rejected;
-            contractState = ContractState.Rejected;
+            closingConditionsReview = ClosingConditionsReview.Pending;
+            contractState = ContractState.WaitingBuyerInterest;
             
             buyer.transfer(deposit);
         }
@@ -102,18 +112,18 @@ contract HomeTransaction {
 
         contractState = ContractState.Finalized;
 
-        seller.transfer(price-realtorFee);
-        realtor.transfer(realtorFee);
+        seller.transfer(price-AgentFee);
+        Agent.transfer(AgentFee);
     }
 
-    function anyWithdrawFromTransaction() public {
+    function anyWithdrawFromTransaction() public payable{
         require(buyer == msg.sender || finalizeDeadline <= now, "Only buyer can withdraw before transaction deadline");
 
         require(contractState == ContractState.WaitingFinalization, "Wrong contract state");
 
-        contractState = ContractState.Rejected;
+       contractState = ContractState.Rejected;
 
-        seller.transfer(deposit-realtorFee);
-        realtor.transfer(realtorFee);
+        seller.transfer(deposit-AgentFee);
+        Agent.transfer(AgentFee);
     }
 }

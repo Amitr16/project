@@ -22,7 +22,8 @@
     <script src="js/bootstrap.min.js"></script>
     <script src="js/web3.min.js"></script>
     <script src="js/truffle-contract.js"></script>
-    <script src="js/app.js"></script>
+    <script type="text/javascript" src="js/app.js"></script>
+    <script  type="text/javascript" src="js/Frontend.js"></script>
   </head>
   <body >
     <div class="container">
@@ -51,11 +52,10 @@
       <input type="text" id="Fee1" name="fee1" value =1><br><br>
       <label for="city">Cost:</label>
       <input type="text" id="Fee2" name="fee2" value =4><br><br>
-      <label for="Seller">Seller:</label>
+      <label for="Lawyer">Lawyer Address:</label>
       <input type="text" id="add1" name="add1" value =0x57Be3CB5e199c7C6018E5FA0A41E08f87561DF5E><br><br>
-      <label for="Buyer">Buyer:</label>
-      <input type="text" id="add2" name="add2" value =0x57Be3CB5e199c7C6018E5FA0A41E08f87561DF5E><br><br>
-      <input type="submit" value="Enter Property" class="btn">
+      
+      <input type="submit" onclick="addProperty()" value="Enter Property" class="btn">
     </form>
 
     <br></br>
@@ -65,14 +65,64 @@
   <form  class="text-center">
     
     <label for="lname">Search for Property Details from ID</label>
-    <input type="text" id="propid" name="propid"><br><br>
+    <input type="text" id="propid" name="propid" ><br><br>
     
 
-    <input type="submit" value="Search Property" class="btn1">
+    <input type="submit" value="Search Property" class="btn1" onclick="ShowTableUI()" >
   </form>
   <br></br>
   <h4 class="text-center">
   <div  id="PropCount"></div>
 </h4>
+
+<h3>
+  Property Details
+</h3>
+<table style="width:100%">
+  <tr>
+    <th>Field</th>
+    <th>Value</th>
+    
+  </tr>
+  <tr>
+    <td>Property ID</td>
+    <td id ="ID">Smith</td>
+    
+  </tr>
+  <tr>
+    <td>Seller Address</td>
+    <td id ="selladdout">Smith</td>
+    
+  </tr>
+  <tr>
+    <td>Buyer Address</td>
+    <td id ="buyeraddout">Smith</td>
+    
+  </tr>
+
+  <tr>
+    <td>Lawyer Address</td>
+    <td id ="lawaddout">Smith</td>
+    
+  </tr>
+  <tr>
+    <td>Property Location</td>
+    <td id ="locout">Smith</td>
+    
+  </tr>
+  <tr>
+    <td>Property Status</td>
+    <td id ="Statusout">Smith</td>
+    
+  </tr>
+</table>
+<form  class="text-center">
+    
+  <label for="lname">Show interest in property ID</label>
+  <input type="text" id="pid" name="pid" ><br><br>
+  
+
+  <input type="submit" value="Show Interest" class="btn1" onclick="ShowInterest()" >
+</form>
   </body>
 </html>

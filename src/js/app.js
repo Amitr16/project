@@ -1,220 +1,138 @@
-App = {
-  web3Provider: null,
-  contracts: {},
-  account: '0x0',
-  hasVoted: false,
-
-  init: async function() {
-    return await App.initWeb3();
-  },
-
-  initWeb3: async function() {
-    if (window.ethereum) {  // Modern dapp browsers
-      App.web3Provider = window.ethereum;
-      try {
-        await window.ethereum.enable();  // Request account access
-      } catch (error) {  // User denied account access...
-        console.error("User denied account access")
-      }
-    } else if (window.web3) {  // Legacy dapp browsers
-      App.web3Provider = window.web3.currentProvider;
-    } else {  // If no injected web3 instance is detected, fall back to Ganache
-      App.web3Provider = new Web3.providers.HttpProvider('http://localhost:7545');
-    }
-    web3 = new Web3(App.web3Provider);
-    return App.initContract();
-  },
-
-  initContract: function() {
-    $.getJSON("Factory.json", function(data) {
-      // Instantiate a new truffle contract from the artifact
-      App.contracts.Factory = TruffleContract(data);
-      // Connect provider to interact with contract
-      App.contracts.Factory.setProvider(App.web3Provider);
-
-    web3.eth.getAccounts(function(err,result){
-      if(!err){
-        App.account = result[0];
-          console.log(App.account );
+var   account=0;
+var contract =0;
+const getWeb3 = () => {
+  return new Promise((resolve, reject) => {
+    window.addEventListener("load", async () => {
+      if (window.ethereum) {
+        const web3 = new Web3(window.ethereum);
+        try {
+          // ask user permission to access his accounts
+          await window.ethereum.request({ method: "eth_requestAccounts" });
+          resolve(web3);
+        } catch (error) {
+          reject(error);
+        }
+      } else {
+        reject("must install MetaMask");
       }
     });
-      // App.listenForEvents();
+  });
+};
 
-      return App.render();
-      
-    });
-    return App.AddPropButton();
-  },
-
-  // Listen for events emitted from the contract
-  // listenForEvents: function() {
-  //   App.contracts.Factory.deployed().then(function(instance) {
-  //     // Restart Chrome if you are unable to receive this event
-  //     // This is a known issue with MetaMask
-  //     // https://github.com/MetaMask/metamask-extension/issues/2393
-  //     instance.votedEvent({}, {
-  //       fromBlock: 0,
-  //       toBlock: 'latest'
-  //     }).watch(function(error, event) {
-  //       console.log("event triggered", event)
-  //       // Reload when a new vote is recorded
-  //       App.render();
-  //     });
-  //   });
-  // },
-
-  render: function() {
-    
-    var HousingInstance;
-    var loader = $("#loader");
-    var content = $("#content");
-
-    loader.show();
-    content.hide();
-   
-    // // Load account data
-    // web3.eth.getAccounts(function(err, accounts) {
-    //   if (err) {
-    //      console.log(err);
-    //   }
-    //   App.account = accounts[0];
-    //   $("#accountAddress").html("Your Account: " + App.account);
-    // });
-
-    // Load contract data
-    App.contracts.Factory.deployed().then(function(instance) {
-      HousingInstance = instance;
-      console.log(HousingInstance);
-      
-      HousingInstance.getInstanceCount().then(function(result){
-        
-         
-            // console.log(result.s );
-        
-      });
-      
-      App.contracts.Factory.deployed().then(function(instance) {
-         return instance.getInstanceCount({ from: App.account });
-      }).then(function(result) {
-        // Wait for votes to update
-        $("#content").hide();
-        $("#loader").show();
-        console.log(result.c);
-
-        document.getElementById("PropCount").innerHTML="Total no. of Properties is :"+result.c;
-      }).catch(function(err) {
-        console.error(err);
-      });     
-
-
-
-     
-
-
-      // console.log( HousingInstance.create(location,pin,city,Fee1,Fee2,add1,add2 ));
+const getContract = async (web3) => {
+  const data = await $.getJSON("Factory.json");
   
-      
-      // console.log( HousingInstance.getInstanceCount()); use this for value not for function
-    });
+  Factory = TruffleContract(data);
+  Factory.setProvider(window.ethereum);
+  LandContract = await Factory.deployed()
 
-    
-    // .then(function(getInstanceCount) {
-    //   var candidatesResults = $("#candidatesResults");
-    //   candidatesResults.empty();
+  return LandContract;
+   
+};
 
-    //   var candidatesSelect = $('#candidatesSelect');
-    //   candidatesSelect.empty();
+const GetPropCount = async () => {
+  const result = await contract.getInstanceCount({ from: account })
+    return result ;  
+};
 
-    //   for (var i = 1; i <= numCandidates; i++) {
-    //     evotingInstance.candidates(i).then(function(candidate) {
-    //       var id = candidate[0];
-    //       var name = candidate[1];
-    //       var numVotes = candidate[2];
+const getPropPrice = async (Index) => {
+  const result = await contract.getInstancePrice(Index,{ from: account })
+    return result ;  
+};
 
-    //       // Render candidate Result
-    //       var candidateTemplate = "<tr><th>" + id + "</th><td>" + name + "</td><td>" + numVotes + "</td></tr>"
-    //       candidatesResults.append(candidateTemplate);
+const getPropAddress= async (Index) => {
+  const result = await contract.getInstanceAddress(Index,{ from: account })
+    return result ;  
+};
 
-    //       // Render candidate ballot option
-    //       var candidateOption = "<option value='" + id + "' >" + name + "</ option>"
-    //       candidatesSelect.append(candidateOption);
-    //     });
-    //   }
-    //   return evotingInstance.voters(App.account);
-    // }).then(function(hasVoted) {
-    //   // Do not allow a user to vote
-    //   if(hasVoted) {
-    //     $('form').hide();
-    //   }
-    //   loader.hide();
-    //   content.show();
-    // }).catch(function(error) {
-    //   console.warn(error);
-    // });
-  },
+const getPropZIP = async (Index) => {
+  const result = await contract.getInstanceZIP(Index,{ from: account })
+    return result ;  
+};
+ 
+ const getPropCity= async (Index) => {
+  const result = await contract.getInstanceCity(Index,{ from: account })
+    return result ;  
+};
 
-  AddPropButton: function() {  
-    $(document).on('click', '.btn', App.addProperty);  
-    $(document).on('click', '.btn1', App.SearchProperty); 
-  },
-  addProperty: function() {
-    var location= $('#location').val();
+const getPropAgentFee=async (Index) => {
+  const result = await contract.getInstanceAgentFee(Index,{ from: account })
+    return result ;  
+};
+const getPropSellerAddress =async(Index) => {
+  const result = await contract.getInstanceSellerAddress(Index,{ from: account })
+    return result ;  
+};
+
+const getPropBuyerAddress=async(Index) => {
+  const result = await contract.getInstanceBuyerAddress(Index,{ from: account })
+    return result ;  
+};
+
+const getPropAgentAddress=async(Index) => {
+  const result = await contract.getInstanceAgentAddress(Index,{ from: account })
+    return result ;  
+};
+
+const getPropState=async(Index) => {
+  const result = await contract.getInstanceState(Index,{ from: account })
+    return result ;  
+};
+const ShowInterest=async() => {
+  alert(0);
+  await contract.buyerShowsInterest(1,{ from: account })
+  alert(1);
+     
+};
+
+const addProperty = async () => {
+  var location= $('#location').val();
     var pin= $('#pin').val();
     var city= $('#city').val();
     var Fee1= $('#Fee1').val();
     var Fee2= $('#Fee2').val();
     var add1= $('#add1').val();
-    var add2= $('#add2').val();
-    
-    App.contracts.Factory.deployed().then(function(instance) {
-      return instance.create(location,pin,city,Fee1,Fee2,add1,add2,{ from: App.account });
-   }).then(function(result) {
-     // Wait for votes to update
-     $("#content").hide();
-     $("#loader").show();
-    //  console.log(result);
-   }).catch(function(err) {
-     console.error(err);
-   }); 
-  },
-
-  SearchProperty: function() {
-    var PropID= $('#propid').val();
- 
-    
-    App.contracts.Factory.deployed().then(function(instance) {
-      return instance.getInstance(PropID,{ from: App.account });
-   }).then(function(result) {
-     // Wait for votes to update
-     $("#content").hide();
-     $("#loader").show();
-    //  alert(result.methods.homeAddress().call);
-     
-    result.methods.homeAddress()(function(err, res){
-      //do something with res here
-      alert(res); //for example
-  });
-     console.log(result);
-   }).catch(function(err) {
-     console.error(err);
-   }); 
-  },
-  // castVote: function() {
-  //   var candidateId = $('#candidatesSelect').val();
-  //   App.contracts.Evoting.deployed().then(function(instance) {
-  //     return instance.vote(candidateId, { from: App.account });
-  //   }).then(function(result) {
-  //     // Wait for votes to update
-  //     $("#content").hide();
-  //     $("#loader").show();
-  //   }).catch(function(err) {
-  //     console.error(err);
-  //   });
-  // }
+    contract.create(location,pin,city,Fee1,Fee2,add1,{ from:account });
 };
 
-$(function() {
-  $(window).load(function() {
-    App.init();
+
+async function PropertyApp() {
+  
+  const web3 =  await getWeb3();
+  
+  web3.eth.getAccounts(function(err,result){
+    if(!err){
+    account = result[0];
+        // console.log(App.account );
+    }
   });
-});
+  contract = await getContract(web3);
+  
+  prop = await GetPropCount();
+  document.getElementById("PropCount").innerHTML="Total no. of Properties is :"+prop.c;
+  ShowTableUI();
+  
+}
+
+
+
+PropertyApp();
+
+async function ShowTableUI(){
+  var index= $('#propid').val();
+  // alert(index);
+  selladdout = await getPropSellerAddress(index);
+  buyeraddout = await getPropBuyerAddress(index);
+  lawaddout = await getPropAgentAddress(index);
+  locout = await getPropAddress(index);
+  Statusout = await getPropState(index);
+  document.getElementById("ID").innerHTML=index;
+  document.getElementById("selladdout").innerHTML=selladdout;
+  document.getElementById("buyeraddout").innerHTML=buyeraddout;
+  document.getElementById("lawaddout").innerHTML=lawaddout;
+  document.getElementById("locout").innerHTML=locout;
+  document.getElementById("Statusout").innerHTML=Statusout;
+
+
+
+}
