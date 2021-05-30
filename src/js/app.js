@@ -79,9 +79,9 @@ const getPropState=async(Index) => {
     return result ;  
 };
 const ShowInterest=async() => {
-  alert(0);
-  await contract.buyerShowsInterest(1,{ from: account })
-  alert(1);
+  var id= $('#pid').val();
+  await contract.buyerShowsInterest(id,{ from: account });
+  
      
 };
 
@@ -110,7 +110,7 @@ async function PropertyApp() {
   
   prop = await GetPropCount();
   document.getElementById("PropCount").innerHTML="Total no. of Properties is :"+prop.c;
-  ShowTableUI();
+  
   
 }
 
@@ -120,6 +120,7 @@ PropertyApp();
 
 async function ShowTableUI(){
   var index= $('#propid').val();
+  // index =6;
   // alert(index);
   selladdout = await getPropSellerAddress(index);
   buyeraddout = await getPropBuyerAddress(index);

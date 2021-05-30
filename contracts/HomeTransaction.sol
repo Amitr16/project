@@ -63,19 +63,19 @@ contract HomeTransaction {
         require(contractState == ContractState.WaitingBuyerInterest, "Wrong contract state");
 
         contractState = ContractState.WaitingSellerSignature;
-        buyer=msg.sender; //setting seller address
+        buyer=tx.origin; //setting seller address
     }
     function sellerSignContract() public payable {
-        require(seller == msg.sender, "Only seller can sign contract");
+        require(seller == tx.origin, "Only seller can sign contract");
 
         require(contractState == ContractState.WaitingSellerSignature, "Wrong contract state");
 
         contractState = ContractState.WaitingBuyerSignature;
-        buyer=msg.sender; //setting seller address
+        buyer=tx.origin; //setting seller address
     }
 
     function buyerSignContractAndPayDeposit() public payable {
-        require(buyer == msg.sender, "Only buyer can sign contract");
+        require(buyer == tx.origin, "Only buyer can sign contract");
 
         require(contractState == ContractState.WaitingBuyerSignature, "Wrong contract state");
     
@@ -88,7 +88,7 @@ contract HomeTransaction {
     }
 
     function AgentReviewedClosingConditions(bool accepted) public {
-        require(Agent == msg.sender, "Only Agent can review closing conditions");
+        require(Agent == tx.origin, "Only Agent can review closing conditions");
 
         require(contractState == ContractState.WaitingAgentReview, "Wrong contract state");
         
@@ -104,7 +104,7 @@ contract HomeTransaction {
     }
 
     function buyerFinalizeTransaction() public payable {
-        require(buyer == msg.sender, "Only buyer can finalize transaction");
+        require(buyer == tx.origin, "Only buyer can finalize transaction");
 
         require(contractState == ContractState.WaitingFinalization, "Wrong contract state");
 
@@ -117,7 +117,7 @@ contract HomeTransaction {
     }
 
     function anyWithdrawFromTransaction() public payable{
-        require(buyer == msg.sender || finalizeDeadline <= now, "Only buyer can withdraw before transaction deadline");
+        require(buyer == tx.origin || finalizeDeadline <= now, "Only buyer can withdraw before transaction deadline");
 
         require(contractState == ContractState.WaitingFinalization, "Wrong contract state");
 
