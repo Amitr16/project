@@ -55,10 +55,26 @@ const getPropZIP = async (Index) => {
     return result ;  
 };
 
+const getLastOpsTime= async (Index) => {
+  const result = await contract.getLastOpsTime(Index,{ from: account })
+    return result ;  
+};
+
 const getPropAgentFee=async (Index) => {
   const result = await contract.getInstanceAgentFee(Index,{ from: account })
     return result ;  
 };
+
+const getInstanceProptype =async (Index) => {
+  const result = await contract.getInstanceProptype(Index,{ from: account })
+    return result ;  
+};
+
+const getInstanceDistrict=async (Index) => {
+  const result = await contract.getInstanceDistrict(Index,{ from: account })
+    return result ;  
+};
+
 const getPropSellerAddress =async(Index) => {
   const result = await contract.getInstanceSellerAddress(Index,{ from: account })
     return result ;  
@@ -74,25 +90,75 @@ const getPropAgentAddress=async(Index) => {
     return result ;  
 };
 
+const getPropFromState=async(state) => {
+  const result = await contract.getPropFromState(state,{ from: account })
+    return result ;  
+};
+
+const getPropFromInvState=async(state) => {
+  const result = await contract.getPropFromInvState(state,{ from: account })
+  
+    return result ;  
+};
+
+const getPropFromDistrict=async() => {
+  const result = await contract.getPropFromDistrict({ from: account })
+    return result ;  
+};
+const getInstanceAcco=async(index) => {
+  const result = await contract.getInstanceAcco(index,{ from: account })
+    return result ;  
+};
+const getInstancePropArea=async(index) => {
+  const result = await contract.getInstancePropArea(index,{ from: account })
+    return result ;  
+};
+
+
+const getPropFromPropType=async() => {
+  const result = await contract.getPropFromPropType({ from: account })
+    return result ;  
+};
+
+const getPropFromBuyer=async() => {
+  const result = await contract.getPropFromBuyer({ from: account })
+    return result ;  
+};
+
+const getPropFromSeller=async() => {
+  const result = await contract.getPropFromBuyer({ from: account })
+    return result ;  
+};
+const getPropFromLawyer=async() => {
+  const result = await contract.getPropFromBuyer({ from: account })
+    return result ;  
+};
+
 const getPropState=async(Index) => {
   const result = await contract.getInstanceState(Index,{ from: account })
     return result ;  
 };
-const ShowInterest=async() => {
-  var id= $('#pid').val();
-  await contract.buyerShowsInterest(id,{ from: account });
+const ShowInterest=async(index) => {
+ 
+ 
+  await contract.buyerShowsInterest(index,{ from: account });
   
      
 };
 
 const addProperty = async () => {
+
   var location= $('#location').val();
+
     var pin= $('#pin').val();
-    var city= $('#city').val();
-    var Fee1= $('#Fee1').val();
+     var Fee1= $('#Fee1').val();
     var Fee2= $('#Fee2').val();
-    var add1= $('#add1').val();
-    contract.create(location,pin,city,Fee1,Fee2,add1,{ from:account });
+    var add1= document.getElementById("Lawname").value;
+    var proptype=document.getElementById("proptype").value;
+    var acco=document.getElementById("acco").value;
+    var distr= document.getElementById("distr").value;
+    var proparea=$('#area').val();
+    contract.create(location,pin,Fee1,Fee2,proptype,acco,proparea,distr,add1,{ from:account });
 };
 
 
@@ -109,8 +175,10 @@ async function PropertyApp() {
   contract = await getContract(web3);
   
   prop = await GetPropCount();
-  document.getElementById("PropCount").innerHTML="Total no. of Properties is :"+prop.c;
-  
+  // document.getElementById("PropCount").innerHTML="Total no. of Properties is :"+prop.c;
+  ShowHDBPropDetails();
+  ShowCondoPropDetails();
+  ShowLandedPropDetails();
   
 }
 
@@ -137,3 +205,105 @@ async function ShowTableUI(){
 
 
 }
+
+
+async function ShowHDBPropDetails(){
+  let accotype=["Studio","1B1T","2B1T","3B2T","4B3T"];
+  strDet=document.getElementById("HDBDet").innerHTML;
+  strDet1=document.getElementById("HDBDet1").innerHTML;
+  document.getElementById("HDBDet").innerHTML="";
+  document.getElementById("HDBDet1").innerHTML="";
+  c=-1;
+for (i=0; i<await GetPropCount() ;i++){
+  state = await getPropState(i);
+  
+  PropType =await getInstanceProptype(i);
+  if(state!=0 || PropType!=0)
+   continue;
+
+  locout = await getPropAddress(i);
+  c++;
+  
+  lastupdate=await getLastOpsTime(i);
+  
+  lastdate= new Date(lastupdate*1000);
+  PropDistr= await getInstanceDistrict(i);
+  Statusout = await getPropState(i);
+  price =await getPropPrice(i);
+  area = await getInstancePropArea(i);
+  acco = await getInstanceAcco(i);
+  psf = price/area;
+  if (c%2==0){
+    document.getElementById("HDBDet").innerHTML+=strDet.replace("xxx",locout).replace("yyy",PropDistr).replace("zzz",price).replace("aaa",accotype[acco-1]).replace("bbb",area).replace("ccc",psf).replace("ddd",i);
+  }  
+  else{
+    document.getElementById("HDBDet1").innerHTML+=strDet1.replace("xxx",locout).replace("yyy",PropDistr).replace("zzz",price).replace("aaa",accotype[acco-1]).replace("bbb",area).replace("ccc",psf).replace("ddd",i);
+  }
+  
+}}
+
+async function ShowCondoPropDetails(){
+ 
+  let accotype=["Studio","1B1T","2B1T","3B2T","4B3T"];
+  strDet=document.getElementById("CondoDet").innerHTML;
+  strDet1=document.getElementById("CondoDet1").innerHTML;
+  document.getElementById("CondoDet").innerHTML="";
+  document.getElementById("CondoDet1").innerHTML="";
+  c=-1;
+for (i=0; i<await GetPropCount() ;i++){
+  state = await getPropState(i);
+  
+  PropType =await getInstanceProptype(i);
+  if(state!=0 || PropType!=1)
+   continue;
+  locout = await getPropAddress(i);
+  c++;
+  lastupdate=await getLastOpsTime(i);
+  
+  lastdate= new Date(lastupdate*1000);
+  PropDistr= await getInstanceDistrict(i);
+  Statusout = await getPropState(i);
+  price =await getPropPrice(i);
+  area = await getInstancePropArea(i);
+  acco = await getInstanceAcco(i);
+  psf = price/area;
+  if (c%2==0){
+    document.getElementById("CondoDet").innerHTML+=strDet.replace("xxx",locout).replace("yyy",PropDistr).replace("zzz",price).replace("aaa",accotype[acco-1]).replace("bbb",area).replace("ccc",psf).replace("ddd",i);
+  }  
+  else{
+    document.getElementById("CondoDet1").innerHTML+=strDet1.replace("xxx",locout).replace("yyy",PropDistr).replace("zzz",price).replace("aaa",accotype[acco-1]).replace("bbb",area).replace("ccc",psf).replace("ddd",i);
+  }
+  
+}}
+async function ShowLandedPropDetails(){
+  let accotype=["Studio","1B1T","2B1T","3B2T","4B3T"];
+  strDet=document.getElementById("LandedDet").innerHTML;
+  strDet1=document.getElementById("LandedDet1").innerHTML;
+  document.getElementById("LandedDet").innerHTML="";
+  document.getElementById("LandedDet1").innerHTML="";
+  c=-1;
+for (i=0; i<await GetPropCount() ;i++){
+  state = await getPropState(i);
+  
+  PropType =await getInstanceProptype(i);
+  if(state!=0 || PropType!=2)
+   continue;
+  locout = await getPropAddress(i);
+  c++;
+  lastupdate=await getLastOpsTime(i);
+  
+  lastdate= new Date(lastupdate*1000);
+  PropDistr= await getInstanceDistrict(i);
+  Statusout = await getPropState(i);
+  price =await getPropPrice(i);
+  area = await getInstancePropArea(i);
+  acco = await getInstanceAcco(i);
+  psf = price/area;
+  if (c%2==0){
+    document.getElementById("LandedDet").innerHTML+=strDet.replace("xxx",locout).replace("yyy",PropDistr).replace("zzz",price).replace("aaa",accotype[acco-1]).replace("bbb",area).replace("ccc",psf).replace("ddd",i);
+  }  
+  else{
+    document.getElementById("LandedDet1").innerHTML+=strDet1.replace("xxx",locout).replace("yyy",PropDistr).replace("zzz",price).replace("aaa",accotype[acco-1]).replace("bbb",area).replace("ccc",psf).replace("ddd",i);
+  }
+  
+}}

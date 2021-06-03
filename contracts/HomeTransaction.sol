@@ -4,7 +4,8 @@ contract HomeTransaction {
     // Constants
     uint constant timeBetweenDepositAndFinalization = 14 days;
     uint constant depositPercentage = 1;
-
+   
+   
     enum ContractState {
         WaitingBuyerInterest,
         WaitingSellerSignature,
@@ -24,37 +25,48 @@ contract HomeTransaction {
     // Contract details
     string public homeAddress;
     string public zip;
-    string public city;
     uint public AgentFee;
     uint public price;
-
+    uint public proptype;
+    string public district;
+    uint public acco;
+    uint public proparea;
     // Set when buyer signs and pays deposit
     uint public deposit;
     uint public finalizeDeadline;
-
+    uint public lastOperationTime;
     // Set when Agent reviews closing conditions
     enum ClosingConditionsReview { Pending, Accepted, Rejected }
     ClosingConditionsReview closingConditionsReview = ClosingConditionsReview.Pending;
 
     constructor(
+        
         string memory _address,
         string memory _zip,
-        string memory _city,
         uint _AgentFee,
         uint _price,
+        uint _proptype,
+        uint _acco,
+        uint _proparea,
+        string memory _district,
         address payable _Agent,
         address payable _seller,
         address payable _buyer) public {
         require(_price >= _AgentFee, "Price needs to be more than Agent fee!");
-
+        
+        
         Agent = _Agent;
+        proptype=_proptype;
+        acco =_acco;
+        proparea =_proparea;
+        district=_district;
         seller = _seller;
         buyer = _buyer;
         homeAddress = _address;
         zip = _zip;
-        city = _city;
         price = _price;
         AgentFee = _AgentFee;
+        
     }
 
        function buyerShowsInterest() public payable {
@@ -64,6 +76,7 @@ contract HomeTransaction {
 
         contractState = ContractState.WaitingSellerSignature;
         buyer=tx.origin; //setting seller address
+        lastOperationTime=now;
     }
     function sellerSignContract() public payable {
         require(seller == tx.origin, "Only seller can sign contract");
@@ -72,6 +85,7 @@ contract HomeTransaction {
 
         contractState = ContractState.WaitingBuyerSignature;
         buyer=tx.origin; //setting seller address
+        lastOperationTime=now;
     }
 
     function buyerSignContractAndPayDeposit() public payable {
@@ -85,6 +99,7 @@ contract HomeTransaction {
 
         deposit = msg.value;
         finalizeDeadline = now + timeBetweenDepositAndFinalization;
+        lastOperationTime=now;
     }
 
     function AgentReviewedClosingConditions(bool accepted) public {
@@ -101,6 +116,7 @@ contract HomeTransaction {
             
             buyer.transfer(deposit);
         }
+        lastOperationTime=now;
     }
 
     function buyerFinalizeTransaction() public payable {
@@ -114,6 +130,7 @@ contract HomeTransaction {
 
         seller.transfer(price-AgentFee);
         Agent.transfer(AgentFee);
+        lastOperationTime=now;
     }
 
     function anyWithdrawFromTransaction() public payable{
@@ -125,5 +142,7 @@ contract HomeTransaction {
 
         seller.transfer(deposit-AgentFee);
         Agent.transfer(AgentFee);
+        lastOperationTime=now;
     }
+    
 }
